@@ -5,6 +5,7 @@
 DROP TABLE IF EXISTS land_records;
 DROP TABLE IF EXISTS properties;
 DROP TABLE IF EXISTS enquiries;
+DROP TABLE IF EXISTS lookup_requests;
 
 -- Land details looked up by registration document number
 CREATE TABLE land_records (
@@ -61,6 +62,19 @@ CREATE TABLE enquiries (
   message       TEXT,
   property_id   INTEGER,                   -- set when enquiring about a specific listing
   created_at    TEXT DEFAULT (datetime('now'))
+);
+
+-- Document lookups we couldn't answer from our own records
+CREATE TABLE lookup_requests (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  doc_number  TEXT NOT NULL,
+  doc_year    INTEGER,
+  sro         TEXT,
+  name        TEXT NOT NULL,
+  phone       TEXT NOT NULL,
+  email       TEXT,
+  status      TEXT DEFAULT 'new',          -- new / done
+  created_at  TEXT DEFAULT (datetime('now'))
 );
 
 -- Sample data (delete before going live)

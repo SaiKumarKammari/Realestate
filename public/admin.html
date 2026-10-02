@@ -32,12 +32,14 @@
       </div>
       <div class="tabs">
         <button class="tab active" data-tab="t-enq">Enquiries</button>
+        <button class="tab" data-tab="t-lookups">Land report requests</button>
         <button class="tab" data-tab="t-props">Properties</button>
         <button class="tab" data-tab="t-addprop">+ Add property</button>
         <button class="tab" data-tab="t-addland">+ Add land record</button>
       </div>
 
       <div id="t-enq" class="card tab-panel"><div class="table-wrap" id="enq-table">Loading…</div></div>
+      <div id="t-lookups" class="card tab-panel hidden"><div class="table-wrap" id="lookups-table">Loading…</div></div>
       <div id="t-props" class="card tab-panel hidden"><div class="table-wrap" id="props-table">Loading…</div></div>
 
       <div id="t-addprop" class="card tab-panel hidden" style="max-width:820px">
@@ -128,6 +130,32 @@
         </tbody></table>` : emptyState("📭", "No enquiries yet.");
     }
 
+    async function loadLookups() {
+      const { results } = await adminApi("/api/lookup-requests");
+      document.getElementById("lookups-table").innerHTML = results.length ? `
+        <table><thead><tr><th>Date</th><th>Document</th><th>SRO</th><th>Name</th><th>Phone</th><th>Status</th><th></th></tr></thead><tbody>
+        ${results.map((r) => `<tr>
+          <td>${esc(r.created_at?.slice(0, 10))}</td>
+          <td><strong>${esc(r.doc_number)}${r.doc_year ? "/" + esc(r.doc_year) : ""}</strong></td>
+          <td>${esc(r.sro || "—")}</td>
+          <td>${esc(r.name)}${r.email ? `<br><span class="muted">${esc(r.email)}</span>` : ""}</td>
+          <td><a href="tel:${esc(r.phone)}">${esc(r.phone)}</a></td>
+          <td><span class="pill">${esc(r.status)}</span></td>
+          <td><button class="btn btn-outline btn-sm" data-id="${r.id}" data-status="${r.status === "done" ? "new" : "done"}">${r.status === "done" ? "Reopen" : "Mark done"}</button></td>
+        </tr>`).join("")}
+        </tbody></table>` : emptyState("📄", "No land report requests yet.");
+    }
+
+    document.getElementById("lookups-table").addEventListener("click", async (e) => {
+      const b = e.target.closest("button[data-id]");
+      if (!b) return;
+      b.disabled = true;
+      try {
+        await adminApi("/api/lookup-requests", { method: "PATCH", body: JSON.stringify({ id: Number(b.dataset.id), status: b.dataset.status }) });
+        loadLookups();
+      } catch (err) { b.textContent = err.message; }
+    });
+
     async function loadProps() {
       const { results } = await adminApi("/api/properties?all=1&limit=100");
       const wrap = document.getElementById("props-table");
@@ -155,6 +183,7 @@
           await adminApi(`/api/properties/${b.dataset.id}`, { method: "PATCH", body: JSON.stringify({ status: b.dataset.status === "sold" ? "available" : "sold" }) });
         }
         loadProps();
+        loadLookups();
       } catch (err) { b.textContent = err.message; }
     });
 
@@ -187,6 +216,7 @@
         document.getElementById("login").classList.add("hidden");
         document.getElementById("dash").classList.remove("hidden");
         loadProps();
+        loadLookups();
       } catch (err) {
         store.clear();
         token = null;

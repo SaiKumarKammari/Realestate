@@ -3,6 +3,7 @@ import * as land from "../functions/api/land/index.js";
 import * as properties from "../functions/api/properties/index.js";
 import * as property from "../functions/api/properties/[id].js";
 import * as enquiries from "../functions/api/enquiries.js";
+import * as lookupRequests from "../functions/api/lookup-requests.js";
 import { error } from "../lib/http.js";
 
 const routes = [
@@ -10,6 +11,7 @@ const routes = [
   [/^\/api\/properties\/?$/, properties],
   [/^\/api\/properties\/(?<id>\d+)\/?$/, property],
   [/^\/api\/enquiries\/?$/, enquiries],
+  [/^\/api\/lookup-requests\/?$/, lookupRequests],
 ];
 
 export default {

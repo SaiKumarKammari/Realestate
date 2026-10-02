@@ -90,14 +90,92 @@
         </article>`;
     }
 
+    // Official Telangana portals. The visitor's own browser opens them and they solve the CAPTCHA there.
+    const PORTALS = {
+      igrs: "https://registration.telangana.gov.in/",
+      bhu: "https://bhubharathi.telangana.gov.in/",
+    };
+
+    function notFound(params) {
+      let doc = params.get("doc") || "", year = params.get("year") || "";
+      if (doc.includes("/") && !year) [doc, year] = doc.split("/").map((x) => x.trim());
+      const sro = params.get("sro") || "";
+      const copyText = [`Document No: ${doc}`, year && `Year: ${year}`, sro && `SRO: ${sro}`].filter(Boolean).join(", ");
+      return `
+        <article class="card record reveal">
+          <span class="eyebrow" style="margin-bottom:4px">Not in our records yet</span>
+          <h2>Search the official Telangana records</h2>
+          <p class="muted" style="margin-top:0">We don't have document <strong>${esc(doc)}${year ? "/" + esc(year) : ""}</strong> yet. Check it on the government portal in two minutes:</p>
+
+          <div class="card" style="box-shadow:none;background:var(--bg);padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <code style="font-size:1rem;font-weight:600">${esc(copyText)}</code>
+            <button class="btn btn-outline btn-sm" type="button" id="copy-doc" data-text="${esc(copyText)}">Copy details</button>
+          </div>
+
+          <ol style="margin:18px 0;padding-left:20px;line-height:1.9">
+            <li>Open the portal below. It opens in a new tab.</li>
+            <li>Go to <strong>Encumbrance Search (EC)</strong>, then <strong>Search by Document Number</strong>.</li>
+            <li>Enter the details above, pick your District and SRO, fill in the CAPTCHA and submit.</li>
+          </ol>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a class="btn" href="${PORTALS.igrs}" target="_blank" rel="noopener">Plots, houses, flats: IGRS →</a>
+            <a class="btn btn-outline" href="${PORTALS.bhu}" target="_blank" rel="noopener">Agricultural land: Bhu Bharathi →</a>
+          </div>
+          <p class="muted" style="font-size:.85rem;margin:12px 0 0">These sites may not open from outside India. If they don't, request a report below.</p>
+        </article>
+
+        <article class="card reveal">
+          <h3 style="margin-bottom:4px">Or let us look it up for you</h3>
+          <p class="muted" style="margin-top:0">We'll get the official details for this document and call or WhatsApp you.</p>
+          <form id="lookup-req">
+            <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <input type="hidden" name="doc_number" value="${esc(doc)}">
+            <input type="hidden" name="doc_year" value="${esc(year)}">
+            <input type="hidden" name="sro" value="${esc(sro)}">
+            <div class="grid-3">
+              <div class="field"><label for="lr-name">Name</label><input id="lr-name" name="name" required autocomplete="name"></div>
+              <div class="field"><label for="lr-phone">Phone / WhatsApp</label><input id="lr-phone" name="phone" type="tel" required placeholder="+91" autocomplete="tel"></div>
+              <div class="field"><label for="lr-email">Email <span class="muted">(optional)</span></label><input id="lr-email" name="email" type="email" autocomplete="email"></div>
+            </div>
+            <button class="btn btn-gold" type="submit">Request land report</button>
+            <div id="lr-msg"></div>
+          </form>
+        </article>`;
+    }
+
+    function wireNotFound() {
+      const copy = document.getElementById("copy-doc");
+      copy?.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(copy.dataset.text); copy.textContent = "Copied ✓"; }
+        catch { copy.textContent = "Select and copy the text"; }
+      });
+      const f = document.getElementById("lookup-req");
+      f?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = f.querySelector("button"), msg = document.getElementById("lr-msg");
+        btn.disabled = true;
+        try {
+          await api("/api/lookup-requests", { method: "POST", body: JSON.stringify(formToObject(f)) });
+          f.querySelectorAll("input:not([type=hidden])").forEach((i) => (i.value = ""));
+          showAlert(msg, "Request received. We'll contact you with the land details soon.");
+        } catch (err) {
+          showAlert(msg, err.message, false);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
     async function search(params) {
       out.innerHTML = `<div class="skeleton" style="min-height:220px"></div>`;
       try {
         const { results } = await api(`/api/land?${params}`);
         out.innerHTML = results.length
           ? results.map(recordCard).join("")
-          : `<div class="card">${emptyState("🔍", "No record found for this document number.<br>Check the number and year, or <a href='requirement.html'>ask us to help</a>.")}</div>`;
+          : notFound(params);
         initReveal(out);
+        wireNotFound();
       } catch (e) {
         out.innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
       }
