@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Property | {site}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <div class="container" style="padding:36px 16px 60px">
+    <a href="properties.html" style="text-decoration:none;font-weight:600">← All properties</a>
+    <div id="detail" style="margin-top:20px"><div class="skeleton" style="min-height:420px"></div></div>
+  </div>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    const id = new URLSearchParams(location.search).get("id");
+    const el = document.getElementById("detail");
+
+    function render(p) {
+      document.title = `${p.title} | ${SITE.name}`;
+      const [docNo, docYear] = (p.doc_number || "").split("/");
+      el.innerHTML = `
+        <div class="detail">
+          <div>
+            ${p.image_url ? `<img class="detail-img" src="${esc(p.image_url)}" alt="${esc(p.title)}">` : `<div class="detail-img"></div>`}
+            <div style="margin-top:28px">
+              <span class="eyebrow">${esc(p.type)} · ${esc(p.area)}, ${esc(p.city)}</span>
+              <h1 style="font-size:clamp(1.8rem,3.5vw,2.6rem)">${esc(p.title)}</h1>
+              <div class="facts">
+                <div class="fact"><small>Price</small><strong>${formatPrice(p.price)}</strong></div>
+                <div class="fact"><small>Size</small><strong>${formatSize(p.size, p.size_unit) || "—"}</strong></div>
+                <div class="fact"><small>Type</small><strong>${esc(p.type)}</strong></div>
+              </div>
+              ${p.description ? `<p style="font-size:1.05rem;white-space:pre-line">${esc(p.description)}</p>` : ""}
+              ${p.doc_number ? `
+                <div class="card record" style="margin-top:24px">
+                  <h3 style="margin-bottom:4px">Land record available</h3>
+                  <p class="muted" style="margin:0 0 14px">Document ${esc(p.doc_number)}. See the survey number, extent and land type.</p>
+                  <a class="btn btn-outline btn-sm" href="land.html?doc=${encodeURIComponent(docNo)}${docYear ? `&year=${encodeURIComponent(docYear)}` : ""}">View land details →</a>
+                </div>` : ""}
+            </div>
+          </div>
+
+          <aside class="card sticky-card">
+            <div class="price" style="font-size:2rem">${formatPrice(p.price)}</div>
+            <p class="muted" style="margin-top:0">Interested? Leave your details and we'll call you back.</p>
+            <form id="enq">
+              <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+              <div class="field"><label for="e-name">Name</label><input id="e-name" name="name" required></div>
+              <div class="field"><label for="e-phone">Phone</label><input id="e-phone" name="phone" type="tel" required placeholder="+91"></div>
+              <div class="field"><label for="e-msg">Message <span class="muted">(optional)</span></label><textarea id="e-msg" name="message" placeholder="Preferred time for a site visit…"></textarea></div>
+              <button class="btn btn-block" type="submit">Request a callback</button>
+              <a class="btn btn-outline btn-block" style="margin-top:8px" target="_blank" rel="noopener"
+                 href="https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(`Hi, I'm interested in: ${p.title} (${location.href})`)}">Chat on WhatsApp</a>
+              <div id="enq-msg"></div>
+            </form>
+          </aside>
+        </div>`;
+
+      document.getElementById("enq").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const f = e.target, btn = f.querySelector("button"), msg = document.getElementById("enq-msg");
+        btn.disabled = true;
+        try {
+          await api("/api/enquiries", { method: "POST", body: JSON.stringify({
+            ...formToObject(f), area: `${p.area}, ${p.city}`, property_type: p.type, budget_max: p.price, property_id: p.id,
+          }) });
+          f.reset();
+          showAlert(msg, "Thanks! We'll call you shortly.");
+        } catch (err) {
+          showAlert(msg, err.message, false);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    }
+
+    if (!id) el.innerHTML = emptyState("🏠", "Property not found.");
+    else api(`/api/properties/${encodeURIComponent(id)}`).then(render).catch((e) => (el.innerHTML = emptyState("🏠", esc(e.message))));
+  </script>
+</body>
+</html>

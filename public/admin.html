@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Admin | {site}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <div class="container" style="padding:40px 16px 60px">
+    <!-- Login -->
+    <div id="login" class="card" style="max-width:420px;margin:40px auto">
+      <h2>Admin sign in</h2>
+      <form id="login-form">
+        <div class="field"><label for="token">Admin token</label><input id="token" type="password" required></div>
+        <button class="btn btn-block">Sign in</button>
+        <div id="login-msg"></div>
+      </form>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dash" class="hidden">
+      <div class="section-head">
+        <h1 style="font-size:2.2rem;margin:0">Dashboard</h1>
+        <button class="btn btn-outline btn-sm" id="logout">Sign out</button>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="t-enq">Enquiries</button>
+        <button class="tab" data-tab="t-props">Properties</button>
+        <button class="tab" data-tab="t-addprop">+ Add property</button>
+        <button class="tab" data-tab="t-addland">+ Add land record</button>
+      </div>
+
+      <div id="t-enq" class="card tab-panel"><div class="table-wrap" id="enq-table">Loading…</div></div>
+      <div id="t-props" class="card tab-panel hidden"><div class="table-wrap" id="props-table">Loading…</div></div>
+
+      <div id="t-addprop" class="card tab-panel hidden" style="max-width:820px">
+        <form id="prop-form">
+          <div class="field"><label>Title</label><input name="title" required placeholder="East-facing plot near ORR"></div>
+          <div class="grid-3">
+            <div class="field"><label>Type</label><select name="type" class="types" required></select></div>
+            <div class="field"><label>Area / locality</label><input name="area" required></div>
+            <div class="field"><label>City</label><input name="city" required value="Hyderabad"></div>
+          </div>
+          <div class="grid-3">
+            <div class="field"><label>Price (₹, full number)</label><input name="price" type="number" min="0" required placeholder="5400000"></div>
+            <div class="field"><label>Size</label><input name="size" type="number" step="any" min="0"></div>
+            <div class="field"><label>Unit</label><select name="size_unit"><option>sq yards</option><option>sq ft</option><option>acres</option><option>guntas</option></select></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>Image URL</label><input name="image_url" type="url" placeholder="https://…"></div>
+            <div class="field"><label>Linked document no. <span class="muted">(e.g. 1234/2023)</span></label><input name="doc_number"></div>
+          </div>
+          <div class="field"><label>Description</label><textarea name="description"></textarea></div>
+          <button class="btn">Add property</button>
+          <div class="msg"></div>
+        </form>
+      </div>
+
+      <div id="t-addland" class="card tab-panel hidden" style="max-width:820px">
+        <form id="land-form">
+          <div class="grid-3">
+            <div class="field"><label>Document number</label><input name="doc_number" required></div>
+            <div class="field"><label>Year</label><input name="doc_year" type="number" required min="1900" max="2100"></div>
+            <div class="field"><label>SRO</label><input name="sro"></div>
+          </div>
+          <div class="grid-3">
+            <div class="field"><label>Survey number</label><input name="survey_number"></div>
+            <div class="field"><label>Village</label><input name="village"></div>
+            <div class="field"><label>Mandal</label><input name="mandal"></div>
+          </div>
+          <div class="grid-3">
+            <div class="field"><label>District</label><input name="district"></div>
+            <div class="field"><label>State</label><input name="state" value="Telangana"></div>
+            <div class="field"><label>Land type</label><select name="land_type"><option value="">—</option><option>residential</option><option>agricultural</option><option>commercial</option></select></div>
+          </div>
+          <div class="grid-3">
+            <div class="field"><label>Extent</label><input name="extent" type="number" step="any" min="0"></div>
+            <div class="field"><label>Unit</label><select name="extent_unit"><option>sq yards</option><option>sq ft</option><option>acres</option><option>guntas</option></select></div>
+            <div class="field"><label>Market value (₹)</label><input name="market_value" type="number" min="0"></div>
+          </div>
+          <div class="grid-2">
+            <div class="field"><label>Owner name</label><input name="owner_name"></div>
+            <div class="field"><label>Registration date</label><input name="registration_date" type="date"></div>
+          </div>
+          <div class="field"><label>Boundaries</label><textarea name="boundaries" style="min-height:70px"></textarea></div>
+          <div class="field"><label>Remarks</label><textarea name="remarks" style="min-height:70px"></textarea></div>
+          <button class="btn">Add land record</button>
+          <div class="msg"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    const KEY = "adminToken";
+    const store = {
+      get: () => { try { return sessionStorage.getItem(KEY); } catch { return null; } },
+      set: (v) => { try { sessionStorage.setItem(KEY, v); } catch {} },
+      clear: () => { try { sessionStorage.removeItem(KEY); } catch {} },
+    };
+    let token = store.get();
+    const adminApi = (path, opts = {}) => api(path, { ...opts, headers: { authorization: `Bearer ${token}` } });
+
+    document.querySelectorAll(".types").forEach((s) => (s.innerHTML = TYPE_OPTIONS));
+
+    async function loadEnquiries() {
+      const { results } = await adminApi("/api/enquiries");
+      document.getElementById("enq-table").innerHTML = results.length ? `
+        <table><thead><tr><th>Date</th><th>Name</th><th>Phone</th><th>Area</th><th>Type</th><th>Budget</th><th>Message</th></tr></thead><tbody>
+        ${results.map((r) => `<tr>
+          <td>${esc(r.created_at?.slice(0, 10))}</td>
+          <td>${esc(r.name)}${r.email ? `<br><span class="muted">${esc(r.email)}</span>` : ""}</td>
+          <td><a href="tel:${esc(r.phone)}">${esc(r.phone)}</a></td>
+          <td>${esc(r.area)}${r.property_id ? `<br><a href="property.html?id=${r.property_id}">Listing #${r.property_id}</a>` : ""}</td>
+          <td>${esc(r.property_type || "Any")}</td>
+          <td>${r.budget_min ? formatPrice(r.budget_min) + " – " : "up to "}${formatPrice(r.budget_max)}</td>
+          <td>${esc(r.message || "")}</td></tr>`).join("")}
+        </tbody></table>` : emptyState("📭", "No enquiries yet.");
+    }
+
+    async function loadProps() {
+      const { results } = await adminApi("/api/properties?all=1&limit=100");
+      const wrap = document.getElementById("props-table");
+      wrap.innerHTML = results.length ? `
+        <table><thead><tr><th>#</th><th>Title</th><th>Area</th><th>Price</th><th>Status</th><th></th></tr></thead><tbody>
+        ${results.map((p) => `<tr>
+          <td>${p.id}</td><td><a href="property.html?id=${p.id}">${esc(p.title)}</a></td>
+          <td>${esc(p.area)}</td><td>${formatPrice(p.price)}</td><td><span class="pill">${esc(p.status)}</span></td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-outline btn-sm" data-act="toggle" data-id="${p.id}" data-status="${p.status}">${p.status === "sold" ? "Mark available" : "Mark sold"}</button>
+            <button class="btn btn-danger btn-sm" data-act="delete" data-id="${p.id}">Delete</button>
+          </td></tr>`).join("")}
+        </tbody></table>` : emptyState("🏡", "No properties yet.");
+    }
+
+    document.getElementById("props-table").addEventListener("click", async (e) => {
+      const b = e.target.closest("button[data-act]");
+      if (!b) return;
+      b.disabled = true;
+      try {
+        if (b.dataset.act === "delete") {
+          if (b.textContent !== "Confirm?") { b.textContent = "Confirm?"; b.disabled = false; return; }
+          await adminApi(`/api/properties/${b.dataset.id}`, { method: "DELETE" });
+        } else {
+          await adminApi(`/api/properties/${b.dataset.id}`, { method: "PATCH", body: JSON.stringify({ status: b.dataset.status === "sold" ? "available" : "sold" }) });
+        }
+        loadProps();
+      } catch (err) { b.textContent = err.message; }
+    });
+
+    function wireForm(id, path, after) {
+      const f = document.getElementById(id);
+      f.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = f.querySelector("button"), msg = f.querySelector(".msg");
+        btn.disabled = true;
+        try {
+          await adminApi(path, { method: "POST", body: JSON.stringify(formToObject(f)) });
+          f.reset();
+          showAlert(msg, "Saved.");
+          after?.();
+        } catch (err) { showAlert(msg, err.message, false); }
+        finally { btn.disabled = false; }
+      });
+    }
+    wireForm("prop-form", "/api/properties", loadProps);
+    wireForm("land-form", "/api/land");
+
+    document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === t));
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== t.dataset.tab));
+    }));
+
+    async function enter() {
+      try {
+        await loadEnquiries();
+        document.getElementById("login").classList.add("hidden");
+        document.getElementById("dash").classList.remove("hidden");
+        loadProps();
+      } catch (err) {
+        store.clear();
+        token = null;
+        showAlert(document.getElementById("login-msg"), err.message === "Unauthorized" ? "Wrong token." : err.message, false);
+      }
+    }
+
+    document.getElementById("login-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      token = document.getElementById("token").value.trim();
+      store.set(token);
+      enter();
+    });
+    document.getElementById("logout").addEventListener("click", () => { store.clear(); location.reload(); });
+    if (token) enter();
+  </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Properties for sale | {site}</title>
+  <meta name="description" content="Plots, agricultural land, houses and flats for sale. Filter by area, type and budget.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Properties</span>
+      <h1>Find a property that fits</h1>
+      <p>Filter by area, type and budget. Listings marked “Doc linked” come with their land record.</p>
+    </div>
+  </section>
+
+  <div class="container overlap layout-filters" style="padding-bottom:40px">
+    <aside class="card filters">
+      <form id="filters">
+        <div class="field">
+          <label for="area">Area / locality</label>
+          <input id="area" name="area" placeholder="e.g. Kokapet">
+        </div>
+        <div class="field">
+          <label for="type">Property type</label>
+          <select id="type" name="type"></select>
+        </div>
+        <div class="field">
+          <label for="min">Min budget</label>
+          <select id="min" name="min" class="budget"></select>
+        </div>
+        <div class="field">
+          <label for="max">Max budget</label>
+          <select id="max" name="max" class="budget"></select>
+        </div>
+        <button class="btn btn-block" type="submit">Apply filters</button>
+        <button class="btn btn-outline btn-block" type="reset" style="margin-top:8px">Clear</button>
+      </form>
+    </aside>
+
+    <div>
+      <div class="results-bar">
+        <strong id="count" style="font-size:1.05rem">Loading…</strong>
+        <select id="sort" aria-label="Sort">
+          <option value="">Newest first</option>
+          <option value="price_asc">Price: low to high</option>
+          <option value="price_desc">Price: high to low</option>
+        </select>
+      </div>
+      <div class="prop-grid" id="grid"></div>
+    </div>
+  </div>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    const form = document.getElementById("filters");
+    const grid = document.getElementById("grid");
+    const sort = document.getElementById("sort");
+    document.getElementById("type").innerHTML = `<option value="">Any type</option>${TYPE_OPTIONS}`;
+    document.getElementById("min").innerHTML = budgetOptions("No minimum");
+    document.getElementById("max").innerHTML = budgetOptions("No maximum");
+
+    async function load() {
+      const params = new URLSearchParams([...new FormData(form)].filter(([, v]) => v));
+      if (sort.value) params.set("sort", sort.value);
+      history.replaceState(null, "", params.size ? `?${params}` : location.pathname);
+      grid.innerHTML = skeletons(4);
+      try {
+        const { results } = await api(`/api/properties?${params}`);
+        document.getElementById("count").textContent = `${results.length} ${results.length === 1 ? "property" : "properties"} found`;
+        grid.innerHTML = results.length
+          ? results.map(propertyCard).join("")
+          : emptyState("🔍", "No properties match these filters.<br><a href='requirement.html'>Tell us what you need</a> and we'll find it.");
+        initReveal(grid);
+      } catch (e) {
+        grid.innerHTML = emptyState("⚠️", esc(e.message));
+      }
+    }
+
+    const q = new URLSearchParams(location.search);
+    for (const k of ["area", "type", "min", "max"]) if (q.get(k)) form.elements[k].value = q.get(k);
+    if (q.get("sort")) sort.value = q.get("sort");
+
+    form.addEventListener("submit", (e) => { e.preventDefault(); load(); });
+    form.addEventListener("reset", () => setTimeout(load));
+    sort.addEventListener("change", load);
+    load();
+  </script>
+</body>
+</html>

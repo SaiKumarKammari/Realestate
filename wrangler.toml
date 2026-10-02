@@ -1,0 +1,8 @@
+name = "realestate"
+compatibility_date = "2026-09-01"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "realestate-db"
+database_id = "5ae5aa07-1971-444a-ae0a-5bc37b4f8238"

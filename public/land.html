@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Land Lookup | {site}</title>
+  <meta name="description" content="Find land details using the registration document number.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Land lookup</span>
+      <h1>Find land details by document number</h1>
+      <p>Enter the registration document number (and year if you know it) to see the survey number, extent, location and land type.</p>
+    </div>
+  </section>
+
+  <div class="container overlap">
+    <div class="card">
+      <form id="land-form" class="search-row">
+        <div class="field">
+          <label for="doc">Document number</label>
+          <input id="doc" name="doc" placeholder="e.g. 1234 or 1234/2023" required>
+        </div>
+        <div class="field">
+          <label for="year">Year</label>
+          <input id="year" name="year" type="number" min="1900" max="2100" placeholder="2023">
+        </div>
+        <div class="field">
+          <label for="sro">SRO <span class="muted">(optional)</span></label>
+          <input id="sro" name="sro" placeholder="Sub-Registrar Office">
+        </div>
+        <button class="btn" type="submit">Search</button>
+      </form>
+    </div>
+
+    <div id="results" style="margin-top:28px;display:grid;gap:20px"></div>
+
+    <p class="muted" style="font-size:.88rem;margin-top:28px">
+      These details are for reference only. Before buying, get a certified copy and an Encumbrance Certificate (EC) from the Sub-Registrar Office or your state's registration portal.
+    </p>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="cta reveal">
+        <div>
+          <h2>Want us to find land for you?</h2>
+          <p>Tell us your preferred area and budget.</p>
+        </div>
+        <a class="btn btn-gold" href="requirement.html">Post requirement →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    const form = document.getElementById("land-form");
+    const out = document.getElementById("results");
+    const FIELDS = [
+      ["Survey number", "survey_number"], ["Village", "village"], ["Mandal", "mandal"],
+      ["District", "district"], ["State", "state"], ["Sub-Registrar Office", "sro"],
+      ["Registration date", "registration_date"], ["Owner", "owner_name"], ["Boundaries", "boundaries"],
+      ["Remarks", "remarks"],
+    ];
+
+    function recordCard(r) {
+      const rows = FIELDS.filter(([, k]) => r[k]).map(([label, k]) => `<div><dt>${label}</dt><dd>${esc(r[k])}</dd></div>`).join("");
+      return `
+        <article class="card record reveal">
+          <div class="record-head">
+            <div>
+              <span class="eyebrow" style="margin-bottom:4px">Document ${esc(r.doc_number)}/${esc(r.doc_year)}</span>
+              <h2 style="margin:0">${formatSize(r.extent, r.extent_unit) || "Land record"}${r.village ? ` · ${esc(r.village)}` : ""}</h2>
+            </div>
+            <div style="text-align:right">
+              ${r.land_type ? `<span class="pill">${esc(r.land_type)}</span>` : ""}
+              ${r.market_value ? `<div class="price" style="margin-top:6px">${formatPrice(r.market_value)}</div><div class="muted" style="font-size:.8rem">Market value</div>` : ""}
+            </div>
+          </div>
+          <dl class="kv">${rows}</dl>
+        </article>`;
+    }
+
+    async function search(params) {
+      out.innerHTML = `<div class="skeleton" style="min-height:220px"></div>`;
+      try {
+        const { results } = await api(`/api/land?${params}`);
+        out.innerHTML = results.length
+          ? results.map(recordCard).join("")
+          : `<div class="card">${emptyState("🔍", "No record found for this document number.<br>Check the number and year, or <a href='requirement.html'>ask us to help</a>.")}</div>`;
+        initReveal(out);
+      } catch (e) {
+        out.innerHTML = `<div class="alert alert-err">${esc(e.message)}</div>`;
+      }
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const params = new URLSearchParams([...new FormData(form)].filter(([, v]) => v));
+      history.replaceState(null, "", `?${params}`);
+      search(params);
+    });
+
+    // Pre-fill and search when arriving from the homepage
+    const q = new URLSearchParams(location.search);
+    if (q.get("doc")) {
+      for (const k of ["doc", "year", "sro"]) form.elements[k].value = q.get(k) || "";
+      search(new URLSearchParams([...q].filter(([, v]) => v)));
+    }
+  </script>
+</body>
+</html>

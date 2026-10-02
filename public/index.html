@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{site} | Land details & properties</title>
+  <meta name="description" content="Look up land details by document number, browse plots and homes, and tell us your area and budget.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header id="site-header" class="over-hero"></header>
+
+  <section class="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="container">
+      <span class="eyebrow">Land · Plots · Homes</span>
+      <h1>Know the land <em class="accent">before</em> you buy it.</h1>
+      <p class="lead">Check any land's details with its registration document number, browse properties we've verified, and tell us your area and budget so we can find the right one for you.</p>
+
+      <div class="hero-tabs" role="tablist">
+        <button class="hero-tab active" data-panel="panel-land" role="tab">Land lookup</button>
+        <button class="hero-tab" data-panel="panel-prop" role="tab">Find property</button>
+      </div>
+
+      <div class="hero-panel" id="panel-land">
+        <form class="search-row" action="land.html">
+          <div class="field">
+            <label for="h-doc">Document number</label>
+            <input id="h-doc" name="doc" placeholder="e.g. 1234 or 1234/2023" required>
+          </div>
+          <div class="field">
+            <label for="h-year">Year</label>
+            <input id="h-year" name="year" type="number" min="1900" max="2100" placeholder="2023">
+          </div>
+          <div class="field">
+            <label for="h-sro">SRO <span class="muted">(optional)</span></label>
+            <input id="h-sro" name="sro" placeholder="Sub-Registrar Office">
+          </div>
+          <button class="btn" type="submit">Search land</button>
+        </form>
+      </div>
+
+      <div class="hero-panel hidden" id="panel-prop">
+        <form class="search-row" action="properties.html">
+          <div class="field">
+            <label for="h-area">Area / locality</label>
+            <input id="h-area" name="area" placeholder="e.g. Kokapet, Miyapur">
+          </div>
+          <div class="field">
+            <label for="h-type">Type</label>
+            <select id="h-type" name="type" class="types"></select>
+          </div>
+          <div class="field">
+            <label for="h-max">Max budget</label>
+            <select id="h-max" name="max" class="budget"></select>
+          </div>
+          <button class="btn" type="submit">Search</button>
+        </form>
+      </div>
+
+      <div class="hero-trust">
+        <span>Free land lookup</span>
+        <span>Document-linked listings</span>
+        <span>No brokerage to post a requirement</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="stats reveal">
+      <div class="stat"><strong>Free</strong><span>Land lookups</span></div>
+      <div class="stat"><strong id="stat-props">—</strong><span>Properties listed</span></div>
+      <div class="stat"><strong>24 hrs</strong><span>Callback on requirements</span></div>
+      <div class="stat"><strong>100%</strong><span>Document-first approach</span></div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head center reveal">
+        <span class="eyebrow">What you can do</span>
+        <h2>Three ways we help you buy right</h2>
+      </div>
+      <div class="features">
+        <div class="card feature reveal">
+          <span class="num">1</span>
+          <div class="icon" id="ic-doc"></div>
+          <h3>Land details by document number</h3>
+          <p>Enter a registration document number to see the survey number, extent, village, land type and market value.</p>
+          <a href="land.html">Look up land →</a>
+        </div>
+        <div class="card feature reveal">
+          <span class="num">2</span>
+          <div class="icon" id="ic-home"></div>
+          <h3>Properties for sale</h3>
+          <p>Plots, farm land, houses and flats, each linked to its land record wherever we have one.</p>
+          <a href="properties.html">Browse properties →</a>
+        </div>
+        <div class="card feature reveal">
+          <span class="num">3</span>
+          <div class="icon" id="ic-target"></div>
+          <h3>Tell us your area and budget</h3>
+          <p>Post what you're looking for and where. We'll call you with properties that match.</p>
+          <a href="requirement.html">Post requirement →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="section-head reveal">
+        <div>
+          <span class="eyebrow">Fresh listings</span>
+          <h2 style="margin:0">Latest properties</h2>
+        </div>
+        <a class="btn btn-outline" href="properties.html">View all properties</a>
+      </div>
+      <div class="prop-grid" id="latest"></div>
+    </div>
+  </section>
+
+  <section class="section dark-band">
+    <div class="container">
+      <div class="section-head reveal">
+        <div>
+          <span class="eyebrow">How it works</span>
+          <h2 style="margin:0">From document to doorstep</h2>
+        </div>
+        <p class="muted">A simple, transparent process built around the land record.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <h3>Verify the land</h3>
+          <p>Search by document number to check the extent, survey number and land type before you go further.</p>
+        </div>
+        <div class="step reveal">
+          <h3>Share your requirement</h3>
+          <p>Tell us the area you like and your budget. We shortlist properties that fit both.</p>
+        </div>
+        <div class="step reveal">
+          <h3>Visit and close</h3>
+          <p>We arrange site visits and help with paperwork through to registration.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight section">
+    <div class="container center">
+      <div class="section-head center reveal">
+        <span class="eyebrow">Popular areas</span>
+        <h2>Where buyers are looking</h2>
+      </div>
+      <div class="chips reveal" id="areas"></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:24px">
+    <!-- Placeholder testimonial: replace with a real customer quote before launch -->
+    <div class="container quote reveal">
+      <blockquote>Checking the document number first saved us from a plot with a mismatched survey number. We found the right one within two weeks.</blockquote>
+      <p class="muted">A recent buyer</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="cta reveal">
+        <div>
+          <h2>Can't find what you need?</h2>
+          <p>Share your preferred area and budget, and we'll call you with matching properties.</p>
+        </div>
+        <a class="btn btn-gold" href="requirement.html">Post your requirement →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    document.querySelectorAll(".budget").forEach((s) => (s.innerHTML = budgetOptions("Any budget")));
+    document.querySelectorAll(".types").forEach((s) => (s.innerHTML = `<option value="">Any type</option>${TYPE_OPTIONS}`));
+    document.getElementById("ic-doc").innerHTML = ICONS.doc;
+    document.getElementById("ic-home").innerHTML = ICONS.home;
+    document.getElementById("ic-target").innerHTML = ICONS.target;
+
+    document.getElementById("areas").innerHTML = ["Kokapet", "Gachibowli", "Miyapur", "Shamshabad", "Kompally", "Shankarpally", "Tellapur", "Adibatla"]
+      .map((a) => `<a class="chip" href="properties.html?area=${encodeURIComponent(a)}">${a}</a>`).join("");
+
+    document.querySelectorAll(".hero-tab").forEach((tab) =>
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".hero-tab").forEach((t) => t.classList.toggle("active", t === tab));
+        document.querySelectorAll(".hero-panel").forEach((p) => p.classList.toggle("hidden", p.id !== tab.dataset.panel));
+      })
+    );
+
+    const latest = document.getElementById("latest");
+    latest.innerHTML = skeletons(3);
+    api("/api/properties?limit=6")
+      .then(({ results }) => {
+        document.getElementById("stat-props").textContent = results.length >= 6 ? "6+" : results.length;
+        latest.innerHTML = results.length ? results.map(propertyCard).join("") : emptyState("🏡", "New properties are coming soon.");
+        initReveal(latest);
+      })
+      .catch(() => (latest.innerHTML = emptyState("⚠️", "Couldn't load properties right now.")));
+  </script>
+</body>
+</html>

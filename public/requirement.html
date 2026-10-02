@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Post your requirement | {site}</title>
+  <meta name="description" content="Tell us your preferred area and budget, and we'll find matching properties.">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <section class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Post requirement</span>
+      <h1>Tell us where, and how much</h1>
+      <p>Share your preferred area and budget. We'll shortlist matching properties and call you within 24 hours.</p>
+    </div>
+  </section>
+
+  <div class="container overlap" style="max-width:820px;padding-bottom:40px">
+    <div class="card">
+      <form id="req">
+        <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <h3>Your requirement</h3>
+        <div class="field">
+          <label for="area">Preferred area(s)</label>
+          <input id="area" name="area" required placeholder="e.g. Kokapet, Tellapur or anywhere near ORR">
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label for="ptype">Property type</label>
+            <select id="ptype" name="property_type"></select>
+          </div>
+          <div class="field">
+            <label for="bmin">Budget from</label>
+            <select id="bmin" name="budget_min"></select>
+          </div>
+          <div class="field">
+            <label for="bmax">Budget up to</label>
+            <select id="bmax" name="budget_max" required></select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="message">Anything else? <span class="muted">(optional)</span></label>
+          <textarea id="message" name="message" placeholder="Plot size, facing, approvals, timeline…"></textarea>
+        </div>
+
+        <h3 style="margin-top:12px">Your contact details</h3>
+        <div class="grid-2">
+          <div class="field"><label for="name">Name</label><input id="name" name="name" required autocomplete="name"></div>
+          <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" required placeholder="+91" autocomplete="tel"></div>
+        </div>
+        <div class="field"><label for="email">Email <span class="muted">(optional)</span></label><input id="email" name="email" type="email" autocomplete="email"></div>
+
+        <button class="btn btn-gold btn-block" type="submit" style="margin-top:6px">Submit requirement</button>
+        <div id="msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById("ptype").innerHTML = `<option value="">Any</option>${TYPE_OPTIONS}`;
+    document.getElementById("bmin").innerHTML = budgetOptions("No minimum");
+    document.getElementById("bmax").innerHTML = budgetOptions("Select budget");
+
+    const q = new URLSearchParams(location.search);
+    if (q.get("area")) document.getElementById("area").value = q.get("area");
+
+    document.getElementById("req").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = e.target, btn = f.querySelector("button[type=submit]"), msg = document.getElementById("msg");
+      btn.disabled = true;
+      try {
+        await api("/api/enquiries", { method: "POST", body: JSON.stringify(formToObject(f)) });
+        f.reset();
+        showAlert(msg, "Thank you! We've received your requirement and will call you soon.");
+      } catch (err) {
+        showAlert(msg, err.message, false);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

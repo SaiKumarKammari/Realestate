@@ -1,0 +1,13 @@
+{
+  "name": "realestate",
+  "private": true,
+  "scripts": {
+    "db:local": "wrangler d1 execute realestate-db --local --file=schema.sql",
+    "db:remote": "wrangler d1 execute realestate-db --remote --file=schema.sql",
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
